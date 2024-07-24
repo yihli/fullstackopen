@@ -1,0 +1,11 @@
+.button {
+    height: 3rem;
+    width: 5rem;
+    background-color: blue;
+    color: white;
+    border-radius: 0.5rem;
+}
+
+.container {
+    display: flex;
+}
