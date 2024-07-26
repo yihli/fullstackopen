@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const morgan = require('morgan')
 
 const app = express()
@@ -7,7 +8,6 @@ const app = express()
 // ------------------------
 // functions used by express to handle request and response objects, used before
 // route event handlers
-
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
     console.log('Path:', request.path)
@@ -28,6 +28,7 @@ morgan.token('body', (req) => {
 // the 'body' token was defined in morgan.token
 app.use(express.json())
 app.use(morgan(':body'))
+app.use(cors())
 
 // stored data
 let persons = [
@@ -142,7 +143,7 @@ app.post('/api/persons', (req, res) => {
     res.json(person)
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })

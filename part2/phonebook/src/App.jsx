@@ -9,10 +9,8 @@ import numbersService from './services/numbers'
 
 import './index.css'
 
-
-
 const App = () => {
-  const [persons, setPersons] = useState(null)
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
@@ -32,7 +30,6 @@ const App = () => {
         return true
       }
     }
-
     return false
   }
 
