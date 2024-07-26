@@ -20,6 +20,7 @@ const App = () => {
     numbersService
       .getAll()
       .then(initialData => {
+        console.log(initialData)
         setPersons(initialData)
       })
   },[persons])
