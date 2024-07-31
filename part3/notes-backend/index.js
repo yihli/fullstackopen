@@ -1,25 +1,33 @@
 // MongoDB
 // -----------------------------------
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
+// require('dotenv').config()
+// const url = process.env.MONGODB_URI 
 
-const password = process.argv[2]
+// mongoose.set('strictQuery', false)
+// mongoose.connect(url)
 
-const url = `mongodb+srv://fullstack:${password}@cluster0.msqcp0t.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`
+// const noteSchema = new mongoose.Schema({
+//     content: String,
+//     important: Boolean,
+// })
 
-mongoose.set('strictQuery', false)
-mongoose.connect(url)
+// noteSchema.set('toJSON', {
+//     transform: (document, returnedObject) => {
+//         returnedObject.id = returnedObject._id.toString()
+//         delete returnedObject._id
+//         delete returnedObject.__v
+//     }
+// })
 
-const noteSchema = new mongoose.Schema({
-    content: String,
-    important: Boolean,
-})
-
-const Note = mongoose.model('Note', noteSchema)
+// const Note = mongoose.model('Note', noteSchema)
 
 // Express 
 // --------------------------------------
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
+const Note = require('./models/note')
 
 const app = express()
 
@@ -50,18 +58,15 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/notes', (request, response) => {
-    response.json(notes)
+    Note.find({}).then(notes => {
+        response.json(notes)
+    })
 })
 
 app.get('/api/notes/:id', (request, response) => {
-    const id = request.params.id
-    const note = notes.find(note => note.id === id)
-    
-    if (note) {
-        response.json(note)
-    } else {
-        response.status(404).end()
-    }
+    Note.findById(request.params.id).then(result => {
+        response.json(result)
+    })
 })
 
 app.delete('/api/notes/:id', (request, response) => {
@@ -85,18 +90,17 @@ app.post('/api/notes', (request, response) => {
         })
     }
 
-    const note = {
-        id: generateId(),
+    const note = new Note({
         content: body.content,
-        important: Boolean(body.important) || false
-    }
+        important: Boolean(body.important) || false,
+    })
 
-    notes = notes.concat(note)
-
-    response.json(notes)
+    note.save().then(result => {
+        response.json(result)
+    })  
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })

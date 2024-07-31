@@ -23,29 +23,46 @@ const noteSchema = new mongoose.Schema({
 })
 
 
+
 const Note = mongoose.model('Note', noteSchema)
 
-const note = new Note({
-    content: 'HTML is easy',
-    important: true,
+const notes = [
+    Note({
+        content: 'HTML is easy',
+        important: true,
+    }),
+    Note({
+        content: 'Browser can only execute JavaScript',
+        important: false,
+    }),
+    Note({
+        content: 'GET and POST are the most important methods of HTTP protocol',
+        important: true,
+    }),
+
+]
+
+notes.forEach(note => {
+    note.save().then(result => {
+        console.log('Note saved!')
+    })
 })
 
 // note.save().then(result => {
 //     console.log(result)
 //     console.log('Note saved!')
-//     mongoose.connection.close()
 // })
 
-Note.find({ important: false }).then(result => {
+// Note.find({ important: false }).then(result => {
 
-    if (result.length === 0) {
-        console.log('No result found')
-    }
+//     if (result.length === 0) {
+//         console.log('No result found')
+//     }
 
-    result.forEach(note => {
-        console.log(note)
-    })
+//     result.forEach(note => {
+//         console.log(note)
+//     })
 
-    mongoose.connection.close()
-})
+//     mongoose.connection.close()
+// })
 
