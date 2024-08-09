@@ -23,7 +23,7 @@ const App = () => {
         console.log(initialData)
         setPersons(initialData)
       })
-  },[persons])
+  },[])
 
   const nameExists = () => {
     for (const obj of persons) {
@@ -75,6 +75,7 @@ const App = () => {
         numbersService
           .replace(findId(newName), newPerson)
           .then(updatedPerson => {
+            setPersons(persons.map(person => person.name === newPerson.name ? {...person, newPerson} : person))
             console.log(updatedPerson)
             setMessage(`Updated ${updatedPerson.name}`)
             setTimeout(() => {
@@ -94,14 +95,20 @@ const App = () => {
           setMessage(null)
         }, 5000)
       })
+      .catch(error => {
+        setMessage(error.response.data.error)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
+      })
   }
 
   const deleteEntry = (id) => {
     if (confirm(`Delete ${persons.find(person => person.id === id).name}?`)) {
       numbersService
         .remove(id)
-        .then( deletedPerson => {
-          setPersons(persons.filter(person => person.id !== deletedPerson.id))
+        .then(deletedPerson => {
+          setPersons(persons.filter(person => person.id !== id))
           console.log(persons)
         })
     }

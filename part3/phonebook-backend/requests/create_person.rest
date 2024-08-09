@@ -1,7 +1,7 @@
-POST https://fullstackopen-vta1.onrender.com/api/persons/
+POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-    "name": "Arto hellsdsdfsdf",
-    "number": "234"
+    "name": "Fart",
+    "number": "103-34"
 }

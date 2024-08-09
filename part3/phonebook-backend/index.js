@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
+const Person = require('./models/person')
 
 const app = express()
 
@@ -14,6 +15,15 @@ const requestLogger = (request, response, next) => {
     console.log('Body:', request.body)
     console.log('---')
     next()
+}
+
+const errorHandler = (error, request, response, next) => {
+    console.log('Error:', error.message)
+    if (error.name === 'ValidationError') {
+        response.status(404).json({ error: error.message })
+    }
+    response.status(400).send({ error: "ID not found." })
+    next(error)
 }
 
 // intializing a morgan token. This uses the req.body created by express.json()
@@ -31,29 +41,6 @@ app.use(morgan(':body'))
 app.use(cors())
 app.use(express.static('dist'))
 
-// stored data
-let persons = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
 
 // route handlers
 //----------------------
@@ -65,84 +52,87 @@ app.get('/', (req, res) => {
 
 // information
 app.get('/info', (req, res) => {
-    res.send(`
-        <p>Phonebook has info for ${persons.length} people.</p>
-        ${Date()}
-    `)
+    Person.find({})
+        .then(result => {
+            res.send(`
+                <p>Phonebook has info for ${result.length} people.</p>
+                ${Date()}
+            `)
+        })
+
+
 })
 
 // all persons data
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(result => {
+        res.json(result)
+    })
 })
 
 // get person by id
-app.get('/api/persons/:id', (req, res) => {
-
-    // using a parameter to choose a specific person by id
-    const id = req.params.id
-
-    // find the person in the data and send response if exists
-    const person = persons.find(p => p.id === id)
-    
-    if (person) {
-        res.json(person)
-    } else {
-        res.status(404).end()
-    }
+app.get('/api/persons/:id', (req, res, next) => {
+    Person.findById(req.params.id)
+    .then(result => {
+        if (result) {
+            res.json(result)
+        } else {
+            res.status(404).end()
+        }
+    })
+    .catch(error => next(error))
 })
 
 // delete person
-app.delete('/api/persons/:id', (req, res) => {
-
-    // use parameter to get id
-    const id = req.params.id
-
-    // remove person with that id from the data
-    persons = persons.filter(person => person.id !== id)
-
-    console.log(persons)
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndDelete(req.params.id)
+        .then(result => {
+            console.log('Deleted successfully!')
+            res.status(204).end()
+        })
+        .catch(error => next(error))
 })
 
-// helper functions to create new person
-// --------------------------------------
-const generateId = () => {
-    return String(Math.floor(Math.random() * 100000))
-}
-
-const nameExists = (name) => {
-    return persons.find(person => person.name.toLowerCase() === name.toLowerCase())   
-}
 
 // create a new person
-app.post('/api/persons', (req, res) => {
-
+app.post('/api/persons', (req, res, next) => {
     // express.json() middleware creates the JS object for the data in req.body
     const body = req.body
     console.log(req.body)
 
-    // check if there is missing data or if the name isn't unique
-    if (!body.name || !body.number) {
-        return res.status(400).json({
-            error: "The name or number is missing (or both)."
-        })
-    }
-
-    if (nameExists(body.name)) {
-        return res.status(400).json({
-            error: "The name must be unique."
-        })
-    }
-
-    const person = {
-        id: generateId(),
+    const person = new Person({
         name: body.name,
         number: body.number
+    })
+
+    
+    person.save()
+        .then(result => {
+            console.log('Person saved!')
+            res.json(result)
+        })
+        .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body
+
+    const person = {
+        name: body.name,
+        number: body.number,
     }
 
-    persons = persons.concat(person)
-    res.json(person)
+    console.log("Person:", person)
+    res.status(204).end()
+    Person.findByIdAndUpdate(req.params.id, person, { new: true })
+        .then(result => {
+            console.log('Person updated: ', person)
+            res.status(204).end()
+        })
+        .catch(error => next(error))
 })
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
