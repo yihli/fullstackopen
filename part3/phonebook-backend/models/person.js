@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const { validate } = require('../../notes-backend/models/note')
 require('dotenv').config()
 
 const url = process.env.MONGODB_URI
